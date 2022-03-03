@@ -16,7 +16,7 @@ vendor/*
 
 # binaries (created by go build on Linux/OSX)
 main
-keptn-service-template-go
+automatic-octo-telegram
 
 # IDE specific folders
 .vscode
