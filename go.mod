@@ -1,4 +1,4 @@
-module example.com/keptn-service-template-go
+module github.com/Raffy23/automatic-octo-telegram
 
 go 1.16
 
