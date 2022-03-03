@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="go build example.com/keptn-service-template-go" type="GoApplicationRunConfiguration" factoryName="Go Application">
-    <module name="keptn-service-template-go" />
+  <configuration default="false" name="go build example.com/automatic-octo-telegram" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="automatic-octo-telegram" />
     <working_directory value="$PROJECT_DIR$" />
     <kind value="PACKAGE" />
-    <package value="example.com/keptn-service-template-go" />
+    <package value="example.com/automatic-octo-telegram" />
     <directory value="$PROJECT_DIR$/" />
     <method v="2" />
   </configuration>
