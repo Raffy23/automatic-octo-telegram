@@ -5,9 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2" // make sure to use v2 cloudevents here
+	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/kelseyhightower/envconfig"
 	keptnlib "github.com/keptn/go-utils/pkg/lib"
 	keptn "github.com/keptn/go-utils/pkg/lib/keptn"
@@ -35,6 +38,7 @@ const ServiceName = "automatic-octo-telegram"
  */
 func parseKeptnCloudEventPayload(event cloudevents.Event, data interface{}) error {
 	err := event.DataAs(data)
+
 	if err != nil {
 		log.Fatalf("Got Data Error: %s", err.Error())
 		return err
@@ -448,33 +452,29 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 	// your custom cloud event, e.g., sh.keptn.your-event
 	// see https://github.com/keptn-sandbox/echo-service/blob/a90207bc119c0aca18368985c7bb80dea47309e9/pkg/events.go
 	// for an example on how to generate your own CloudEvents and structs
-	case keptnv2.GetTriggeredEventType("your-event"): // sh.keptn.event.your-event.triggered
-		log.Printf("Processing your-event.triggered Event")
+	case keptnv2.GetTriggeredEventType(ServiceName): // sh.keptn.event.your-event.triggered
+		log.Printf("Processing %s.triggered Event", ServiceName)
 
-		// eventData := &keptnv2.YourEventTriggeredEventData{}
-		//  parseKeptnCloudEventPayload(event, eventData)
+		eventData := &AutomaticOctoTelegramTriggeredEventData{}
+		parseKeptnCloudEventPayload(event, eventData)
 
-		break
-	case keptnv2.GetStartedEventType(keptnv2.ConfigureMonitoringTaskName): // sh.keptn.event.your-event.started
-		log.Printf("Processing your-event.started Event")
+		return HandleAutomaticOctoTelegramTriggerAction(*myKeptn, event, eventData)
 
-		// eventData := &keptnv2.YourEventStartedEventData{}
-		// parseKeptnCloudEventPayload(event, eventData)
+	// Consume the following events to prevent a unkown event error in the logs:
+	case keptnv2.GetStartedEventType(ServiceName): // sh.keptn.event.your-event.started
+		log.Printf("Processing %s.started Event", ServiceName)
+		log.Printf("Source: %s", event.Source())
+		return nil
 
-		// Just log this event
-		// return GenericLogKeptnCloudEventHandler(myKeptn, event, eventData)
+	case keptnv2.GetFinishedEventType(ServiceName): // sh.keptn.event.your-event.finished
+		log.Printf("Processing %s.finished Event", ServiceName)
+		log.Printf("Source: %s", event.Source())
+		return nil
 
-		break
-	case keptnv2.GetFinishedEventType(keptnv2.ConfigureMonitoringTaskName): // sh.keptn.event.your-event.finished
-		log.Printf("Processing your-event.finished Event")
-
-		// eventData := &keptnv2.YourEventFinishedEventData{}
-		// parseKeptnCloudEventPayload(event, eventData)
-
-		// Just log this event
-		// return GenericLogKeptnCloudEventHandler(myKeptn, event, eventData)
-
-		break
+	case keptnv2.GetStatusChangedEventType(ServiceName): // sh.keptn.event.your-event.status.changed
+		log.Printf("Processing %s.finished Event", ServiceName)
+		log.Printf("Source: %s", event.Source())
+		return nil
 	}
 
 	// Unknown Event -> Throw Error!
@@ -483,6 +483,57 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 
 	log.Print(errorMsg)
 	return errors.New(errorMsg)
+}
+
+func HandleAutomaticOctoTelegramTriggerAction(myKeptn keptnv2.Keptn, event event.Event, eventData *AutomaticOctoTelegramTriggeredEventData) error {
+
+	// Prevent the service to respond to itself
+	if eventData.Action == "fishing" && event.Source() != ServiceName {
+		myKeptn.SendTaskStartedEvent(&keptnv2.EventData{
+			Status:  keptnv2.StatusSucceeded,
+			Result:  keptnv2.ResultPass,
+			Message: "Automatic ocoto will start writing the telegram",
+		}, ServiceName)
+
+		// Wait in a background thread so that the handler is not blocked
+		go func() {
+			waitTime := rand.Intn(5)
+
+			myKeptn.SendTaskStatusChangedEvent(&keptnv2.EventData{
+				Status:  "InProgress",
+				Result:  keptnv2.ResultPass,
+				Message: fmt.Sprintf("Automatic octo will start in %d sec", waitTime),
+			}, ServiceName)
+
+			time.Sleep(time.Duration(waitTime) * time.Second)
+
+			// https://en.wikipedia.org/wiki/List_of_fish_common_names
+			fishNames := make([]string, 5)
+			fishNames[0] = "Coley"
+			fishNames[1] = "Catfish"
+			fishNames[2] = "Dab"
+			fishNames[3] = "Dogteeth tetra"
+			fishNames[4] = "Inconnu"
+
+			pickIndex := rand.Intn(len(fishNames))
+			pickedFish := fishNames[pickIndex]
+
+			myKeptn.SendTaskFinishedEvent(&keptnv2.EventData{
+				Status:  keptnv2.StatusSucceeded,
+				Result:  keptnv2.ResultPass,
+				Message: fmt.Sprintf("Octo fished: %s", pickedFish),
+			}, ServiceName)
+		}()
+
+	} else {
+		myKeptn.SendTaskFinishedEvent(&keptnv2.EventData{
+			Status:  keptnv2.StatusErrored,
+			Result:  keptnv2.ResultFailed,
+			Message: fmt.Sprintf("Action must be \"fishing\" but was \"%s\"", eventData.Action),
+		}, ServiceName)
+	}
+
+	return nil
 }
 
 /**
