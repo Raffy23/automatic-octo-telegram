@@ -129,7 +129,7 @@ jobs:
 
       - name: Generate lowercase github.repository_owner
         id: gen_lowercase_repo_owner
-        run: echo ::set-env name=GITHUB_REPOSITORY_OWNER::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')
+        run: echo "GITHUB_REPOSITORY_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Docker Build
         id: docker_build
