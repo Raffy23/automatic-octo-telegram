@@ -129,15 +129,15 @@ jobs:
 
       - name: Generate lowercase github.repository_owner
         id: gen_lowercase_repo_owner
-        run: echo "GITHUB_REPOSITORY_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
+        run:  echo "::set-output github_repository_owner=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')"
+       
       - name: Docker Build
         id: docker_build
         uses: keptn/gh-automation/.github/actions/docker-build@v1.4.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAGS: |
-            ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER }}/${{ env.IMAGE }}:${{ env.VERSION }}
+            ghcr.io/${{ steps.gen_lowercase_repo_owner.outputs.github_repository_owner }}/${{ env.IMAGE }}:${{ env.VERSION }}
           BUILD_ARGS: |
             version=${{ env.VERSION }}
           PUSH: ${{(github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository)}}
