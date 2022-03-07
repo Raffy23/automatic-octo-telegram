@@ -127,7 +127,7 @@ jobs:
         with:
           env-file: .ci_env
 
-       - name: Docker Build
+      - name: Docker Build
         id: docker_build
         uses: Raffy23/gh-automation/.github/actions/docker-build@fix/normalize_docker_tags
         with:
