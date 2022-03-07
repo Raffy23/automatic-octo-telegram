@@ -127,13 +127,13 @@ jobs:
         with:
           env-file: .ci_env
 
-      - name: Generate lowercase github.repository_owner
-        id: gen_lowercase_repo_owner
-        run:  echo "::set-output name=github_repository_owner::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')"
+      #- name: Generate lowercase github.repository_owner
+      #  id: gen_lowercase_repo_owner
+      #  run:  echo "::set-output name=github_repository_owner::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')"
        
       - name: Docker Build
         id: docker_build
-        uses: keptn/gh-automation/.github/actions/docker-build@v1.4.1
+        uses: Raffy23/gh-automation/.github/actions/docker-build@fix/normalize_docker_tags 
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAGS: |
