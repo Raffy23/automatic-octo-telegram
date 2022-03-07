@@ -129,7 +129,7 @@ jobs:
 
       - name: Generate lowercase github.repository_owner
         id: gen_lowercase_repo_owner
-        run:  echo "::set-output github_repository_owner::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')"
+        run:  echo "::set-output name=github_repository_owner::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')"
        
       - name: Docker Build
         id: docker_build
